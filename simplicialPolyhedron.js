@@ -176,7 +176,7 @@ const SimplicialPolyhedron = function () {
         getGeometry: {
             enumerable: false,
             modificable: false,
-            value: function (B) {
+            value: function () {
 
                 return bGeometry
             }

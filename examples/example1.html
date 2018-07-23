@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Example 1</title>
+        <meta name="author" content="Daniel Torres">
+        <meta name="description" content="Example of Simplicial Polyhedron">
+        <link href="css/main.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/94/three.min.js"></script>
+        <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+        <script src="../simplicialPolyhedron.js"></script>
+        <script src="js/sceneManager.js"></script>
+
+        <script>
+
+            /*
+            *
+            *   Setup Scene
+            *
+            * */
+
+            const sceneManager = new SceneManager();
+            sceneManager
+                .registerScene('main scene', scene => {
+                    // set up some light...
+                    const light = new THREE.AmbientLight( 0x404040, 10 );
+                    scene.add( light );
+                })
+                .registerCamera('main camera', camera => {
+                    const R = 10
+                    const theta = 0.5/4 * 2 * Math.PI;
+                    camera.position.set(R * Math.cos(theta),0, R * Math.sin(theta))
+                    camera.lookAt(new THREE.Vector3(0,0,0))
+                })
+
+            const controls =  new THREE.OrbitControls( sceneManager.getCurrentCamera() )
+            sceneManager
+                .registerStep('update orbit controls', (t,scene,camera) => {
+                    controls.update()
+                })
+
+            sceneManager.schedule = [
+                'update orbit controls'
+            ]
+
+            sceneManager.start()
+
+            /*
+             *
+             * Simplicial complex
+             *
+             * */
+
+            const point = new SimplicialPolyhedron(0,1)
+            point.setCoordinates([0])
+
+            const segment = new SimplicialPolyhedron(1,1)
+            segment
+                .setCoordinates([0,1])
+                .setMaximalSimplexes([0,1])
+
+            const square = segment.times(segment)
+            const squareIn3d = square.times(point)
+
+            console.log(squareIn3d.coordinates)
+
+            const geometry = squareIn3d.buildGeometry().getGeometry()
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xffffff
+            })
+            const mesh = new THREE.Mesh(geometry,material)
+
+            sceneManager.getCurrentScene().add(mesh)
+            console.log(mesh.geometry.attributes.position)
+
+
+        </script>
+    </body>
+</html>
