@@ -147,7 +147,7 @@ const SimplicialPolyhedron = function () {
             modificable: false,
             value: function () {
 
-                if ( THREE === null || dimension != 2 || env_dimension != 3) {
+                if ( THREE === null || dimension !== 2 || env_dimension !== 3) {
                     return this
                 }
 
@@ -187,7 +187,7 @@ const SimplicialPolyhedron = function () {
             modificable: false,
             value: function () {
 
-                if ( THREE === null || dimension != 2 || env_dimension != 3) {
+                if ( THREE === null || dimension !== 2 || env_dimension !== 3) {
                     return this
                 }
 
@@ -354,7 +354,7 @@ const SimplicialPolyhedron = function () {
                         }
 
                         if (a < n) {
-                            sgn *= b %2 == 1 ? -1 : 1
+                            sgn *= b %2 === 1 ? -1 : 1
                             rec(a + 1, b, i + 1, sgn)
                         }
                         if (b < m) {
@@ -373,7 +373,7 @@ const SimplicialPolyhedron = function () {
                                 maximalSimplexesC[((i * B.length(B.dimension) + j) * N + k) * (C.dimension + 1) + l] = pointC
                             })
 
-                            if (sgn == -1 && (C.dimension + 1) >= 2) {
+                            if (sgn === -1 && (C.dimension + 1) >= 2) {
                                 let a = maximalSimplexesC[((i * B.length(B.dimension) + j) * N + k) * (C.dimension + 1) + (C.dimension + 1) -1]
                                 maximalSimplexesC[((i * B.length(B.dimension) + j) * N + k) * (C.dimension + 1) + (C.dimension + 1) -1] = maximalSimplexesC[((i * B.length(B.dimension) + j) * N + k) * (C.dimension + 1) + (C.dimension + 1) -2]
                                 maximalSimplexesC[((i * B.length(B.dimension) + j) * N + k) * (C.dimension + 1) + (C.dimension + 1) -2] = a
@@ -404,6 +404,10 @@ const SimplicialPolyhedron = function () {
 
     return this
 }
+
+SimplicialPolyhedron.prototype = Object.create({}, {
+
+})
 
 if (typeof define === 'function' && define.amd) {
     define('SimplicialPolyhedron', function () {
