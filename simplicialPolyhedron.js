@@ -1,5 +1,7 @@
 const SimplicialPolyhedron = function () {
 
+    const $ = SimplicialPolyhedron
+
     const isKey = a => (typeof a === 'string') || (typeof a === 'number')
     const isNum = a => (typeof a === 'number')
     const isObj = a => (typeof a === 'object') && !Array.isArray(a)
@@ -37,7 +39,6 @@ const SimplicialPolyhedron = function () {
     let env_dimension = 3
     let coordinates = new Float32Array()
     let maximalSimplexes = new Uint32Array()
-    let THREE = null
     let bGeometry = null
     let bGeometryPointsMapping = null
 
@@ -85,9 +86,9 @@ const SimplicialPolyhedron = function () {
         THREE: {
             enumerable: false,
             modificable: false,
-            get: () => THREE,
+            get: () => $.THREE,
             set: function (a) {
-                THREE = a
+                $.THREE = a
                 return this
             },
         },
@@ -147,15 +148,15 @@ const SimplicialPolyhedron = function () {
             modificable: false,
             value: function () {
 
-                if ( THREE === null || dimension !== 2 || env_dimension !== 3) {
+                if ( $.THREE === null || dimension !== 2 || env_dimension !== 3) {
                     return this
                 }
 
-                bGeometry = new THREE.BufferGeometry()
+                bGeometry = new $.THREE.BufferGeometry()
                 bGeometryPointsMapping = new Uint32Array(this.length(dimension) * (dimension+1))
 
                 const positions = new Float32Array(this.length(dimension) * (dimension+1) * env_dimension)
-                const bAttr = new THREE.BufferAttribute(positions,env_dimension)
+                const bAttr = new $.THREE.BufferAttribute(positions,env_dimension)
                 bAttr.dynamic = true
                 bGeometry.addAttribute('position',bAttr)
                 bGeometry.computeVertexNormals()
@@ -187,7 +188,7 @@ const SimplicialPolyhedron = function () {
             modificable: false,
             value: function () {
 
-                if ( THREE === null || dimension !== 2 || env_dimension !== 3) {
+                if ( $.THREE === null || dimension !== 2 || env_dimension !== 3) {
                     return this
                 }
 
@@ -405,9 +406,28 @@ const SimplicialPolyhedron = function () {
     return this
 }
 
-SimplicialPolyhedron.prototype = Object.create({}, {
+SimplicialPolyhedron.prototype = Object.create({}, {})
 
+/*
+*
+*   Static
+*
+* */
+
+Object.defineProperties(SimplicialPolyhedron, {
+    THREE: {
+        enumerable: true,
+        modificable: true,
+        value: THREE ? THREE : null
+    },
 })
+
+
+/*
+*
+*   Include
+*
+* */
 
 if (typeof define === 'function' && define.amd) {
     define('SimplicialPolyhedron', function () {
