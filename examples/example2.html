@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Example 1</title>
+        <title>Example 2</title>
         <meta name="author" content="Daniel Torres">
         <meta name="description" content="Example of Simplicial Polyhedron">
         <link href="css/main.css" rel="stylesheet" type="text/css">
@@ -75,23 +75,15 @@
 
 
             // since square lives inside a 2dim space
-            // we embed it in a 3dim by doing cartesian product
-            // with a point embedded in a 1dim space
-            // define a points inside 1dim space
+            // we embed it in a 3dim by projecting coordinates
+            // in a 3dim space
 
-            const point = new SimplicialPolyhedron(0,1)
-            point
-                // one point at position 0
-                .setCoordinates([0])
-                // set this as the polyhedron
-                .setMaximalSimplexes([0])
-
-
-            const squareIn3d = square.times(point)
+            square
+                .projectToEnvironment(3, (X,point, square) => [X[0],X[1],0])
 
 
             // build and get buffer geometry
-            const geometry = squareIn3d.buildGeometry().getGeometry()
+            const geometry = square.buildGeometry().getGeometry()
 
             // just create mesh and add to scene
             const material = new THREE.MeshNormalMaterial({

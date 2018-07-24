@@ -393,6 +393,27 @@ const SimplicialPolyhedron = function () {
         },
 
 
+        projectToEnvironment: {
+            enumerable: false,
+                modificable: false,
+                value: function (newEnvDim,projection) {
+
+                const newCoordinates = new Float32Array(this.length(0) * newEnvDim)
+                this.forEachPoint( (coordinates,i) => {
+                    const newPointCoordinates = projection(coordinates,i,this)
+                    for (let j = 0; j < newEnvDim; j++) {
+                        newCoordinates[i*newEnvDim + j] = newPointCoordinates[j]
+                    }
+                })
+
+                coordinates = newCoordinates
+                env_dimension = newEnvDim
+
+                return this
+            }
+        },
+
+
     })
 
     /*

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Example 1</title>
+        <title>Example 3</title>
         <meta name="author" content="Daniel Torres">
         <meta name="description" content="Example of Simplicial Polyhedron">
         <link href="css/main.css" rel="stylesheet" type="text/css">
@@ -57,43 +57,36 @@
              *
              * */
 
-            // Set THREE as THREE engine
+
             SimplicialPolyhedron.THREE = THREE;
 
-            // define a segment inside 1dim space
-            const segment = new SimplicialPolyhedron(1,1)
-            segment
-                // coordinates of the segment
-                .setCoordinates([-1,1])
-                // define the polyhedron as the segment
-                // going from the first point to the second one
-                .setMaximalSimplexes([0,1])
+            const coords = []
+            for (let i = -1; i <= 1; i+=0.1) {
+                coords.push(i)
+            }
+
+            const faces = []
+            for (let i = 1; i < coords.length; i++) {
+                faces.push(i-1)
+                faces.push(i)
+            }
 
 
-            // square is just the cartesian product of two segments
-            const square = segment.times(segment)
+            const line = new SimplicialPolyhedron(1,1)
 
 
-            // since square lives inside a 2dim space
-            // we embed it in a 3dim by doing cartesian product
-            // with a point embedded in a 1dim space
-            // define a points inside 1dim space
-
-            const point = new SimplicialPolyhedron(0,1)
-            point
-                // one point at position 0
-                .setCoordinates([0])
-                // set this as the polyhedron
-                .setMaximalSimplexes([0])
+            line
+                .setCoordinates(coords)
+                .setMaximalSimplexes(faces)
 
 
-            const squareIn3d = square.times(point)
+            const square = line.times(line)
+            square
+                .projectToEnvironment(3, (X,point, square) => [X[0],X[1],X[0]*X[0]+X[1]*X[1]])
 
 
             // build and get buffer geometry
-            const geometry = squareIn3d.buildGeometry().getGeometry()
-
-            // just create mesh and add to scene
+            const geometry = square.buildGeometry().getGeometry()
             const material = new THREE.MeshNormalMaterial({
                 side: THREE.DoubleSide,
             })
