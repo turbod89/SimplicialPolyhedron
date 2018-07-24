@@ -197,7 +197,10 @@ const SimplicialPolyhedron = function () {
                         bGeometry.attributes.position.array[i *env_dimension + j]  = coordinates[point * env_dimension + j]
                     }
                 })
+                bGeometry.computeVertexNormals()
+                bGeometry.computeFaceNormals()
                 bGeometry.attributes.position.needsUpdate = true
+
 
                 return this
             },
@@ -418,7 +421,7 @@ Object.defineProperties(SimplicialPolyhedron, {
     THREE: {
         enumerable: true,
         modificable: true,
-        value: THREE ? THREE : null
+        value: this.THREE ? this.THREE : null
     },
 })
 

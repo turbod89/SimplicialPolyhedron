@@ -26,16 +26,16 @@
 
             const sceneManager = new SceneManager();
             sceneManager
-                .registerScene('main scene', scene => {
+                .registerScene('main scene', function(scene) {
                     // set up some light...
-                    const light = new THREE.AmbientLight( 0x404040, 10 );
-                    scene.add( light );
+                    const light = new THREE.AmbientLight( 0x404040 )
+                    scene.add( light )
                 })
-                .registerCamera('main camera', camera => {
-                    const R = 10
-                    const theta = 0.5/4 * 2 * Math.PI;
-                    camera.position.set(R * Math.cos(theta),0, R * Math.sin(theta))
-                    camera.lookAt(new THREE.Vector3(0,0,0))
+                .registerCamera('main camera',{}, function(camera) {
+                    const R = 5
+                    const theta = 0.5/4 * 2 * Math.PI
+                    camera.position.set(0,-R * Math.cos(theta), R * Math.sin(theta))
+                    camera.lookAt(0,0,0)
                 })
 
             const controls =  new THREE.OrbitControls( sceneManager.getCurrentCamera() )
@@ -50,33 +50,56 @@
 
             sceneManager.start()
 
+
             /*
              *
              * Simplicial complex
              *
              * */
 
-            const point = new SimplicialPolyhedron(0,1)
-            point.setCoordinates([0])
+            // Set THREE as THREE engine
+            SimplicialPolyhedron.THREE = THREE;
 
+            // define a segment inside 1dim space
             const segment = new SimplicialPolyhedron(1,1)
             segment
-                .setCoordinates([0,1])
+                // coordinates of the segment
+                .setCoordinates([-1,1])
+                // define the polyhedron as the segment
+                // going from the first point to the second one
                 .setMaximalSimplexes([0,1])
 
+
+            // square is just the cartesian product of two segments
             const square = segment.times(segment)
+
+            
+            // since square lives inside a 2dim space
+            // we embed it in a 3dim by doing cartesian product
+            // with a point embedded in a 1dim space
+            // define a points inside 1dim space
+
+            const point = new SimplicialPolyhedron(0,1)
+            point
+            // one point at position 0
+                .setCoordinates([0])
+                // set this as the polyhedron
+                .setMaximalSimplexes([0])
+
+
             const squareIn3d = square.times(point)
 
-            console.log(squareIn3d.coordinates)
 
+            // build and get buffer geometry
             const geometry = squareIn3d.buildGeometry().getGeometry()
-            const material = new THREE.MeshBasicMaterial({
-                color: 0xffffff
+
+            // just create mesh and add to scene
+            const material = new THREE.MeshNormalMaterial({
+                side: THREE.DoubleSide,
             })
             const mesh = new THREE.Mesh(geometry,material)
 
             sceneManager.getCurrentScene().add(mesh)
-            console.log(mesh.geometry.attributes.position)
 
 
         </script>
