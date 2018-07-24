@@ -444,6 +444,30 @@ Object.defineProperties(SimplicialPolyhedron, {
         modificable: true,
         value: this.THREE ? this.THREE : null
     },
+
+    Segment: {
+        enumerable: false,
+        modificable: false,
+        value: function (a,b,n = 1) {
+            const length = (Math.max(a,b) - Math.min(a,b)) / n
+            const coords = new Float32Array(n+1)
+            for (let i = 0; i < coords.length; i++) {
+                coords[i] = Math.min(a,b) + i*length
+            }
+            const faces = new Float32Array(2*n)
+            for (let i = 0; i < n; i++) {
+                faces[2*i] = i
+                faces[2*i+1] = i+1
+            }
+
+            const segment = new SimplicialPolyhedron(1,1)
+            segment
+                .setCoordinates(coords)
+                .setMaximalSimplexes(faces)
+
+            return segment
+        }
+    }
 })
 
 

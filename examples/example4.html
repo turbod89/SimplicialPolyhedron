@@ -55,27 +55,9 @@
 
             SimplicialPolyhedron.THREE = THREE;
 
-            const coords = []
-            for (let i = -1; i <= 1; i+=0.1) {
-                coords.push(i)
-            }
+            const segment = new SimplicialPolyhedron.Segment(-1,1,20)
 
-            const faces = []
-            for (let i = 1; i < coords.length; i++) {
-                faces.push(i-1)
-                faces.push(i)
-            }
-
-
-            const line = new SimplicialPolyhedron(1,1)
-
-
-            line
-                .setCoordinates(coords)
-                .setMaximalSimplexes(faces)
-
-
-            const square = line.times(line)
+            const square = segment.times(segment)
             square
                 .projectToEnvironment(3, (X,point, square) => [X[0],X[1],0])
 
