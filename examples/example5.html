@@ -62,9 +62,7 @@
                 0
             ]
 
-            const torus = new SimplicialPolyhedron.TorusAlong(gamma,0.25,50,10)
-
-            console.log(torus.coordinates, torus.maximalSimplexes)
+            const torus = new SimplicialPolyhedron.TorusAlong(gamma,0.15,100,20)
 
             // build and get buffer geometry
             const geometry = torus.buildGeometry().getGeometry()

@@ -228,16 +228,16 @@ const SimplicialPolyhedron = function () {
                     // coordinates are given in a array
                     if (L(a[0]) === 0) {
                         // do nothing at all
-                    } else if (isFloatA(a) && L(a) % env_dimension === 0) {
+                    } else if (isFloatA(a[0]) && L(a[0]) % env_dimension === 0) {
                         // these are the coordinates
                         coordinates = a[0]
-                    } else if (isArr(a) && isNum(a[0][0]) && L(a[0]) % env_dimension === 0) {
+                    } else if (isArr(a[0]) && isNum(a[0][0]) && L(a[0]) % env_dimension === 0) {
                         // these are the coordinates
                         coordinates = new Float32Array(a[0])
-                    } else if (isArr(a) && isArr(a[0][0])) {
+                    } else if (isArr(a[0]) && isArr(a[0][0])) {
                         coordinates = new Float32Array(L(a[0]) * env_dimension)
                         a[0].forEach((p, i) => p.forEach((x, j) => coordinates[i * env_dimension + j] = x))
-                    } else if (isArr(a) && isObj(a[0][0])) {
+                    } else if (isArr(a[0]) && isObj(a[0][0])) {
                         coordinates = new Float32Array(L(a[0]) * env_dimension)
                         a[0].forEach((p, i) => coordinateNames.forEach((coordName, j) => coordinates[i * env_dimension + j] = p[coordName]))
                     } else {
@@ -267,12 +267,16 @@ const SimplicialPolyhedron = function () {
                     // coordinates are given in a array
                     if (L(a[0]) === 0) {
                         // do nothing at all
-                    } else if (isUintA(a) && L(a) % (dimension + 1) === 0) {
+                    } else if (isUintA(a[0]) && L(a[0]) % (dimension + 1) === 0) {
                         // these are the coordinates
                         maximalSimplexes = a[0]
-                    } else if (isArr(a) && isNum(a[0][0]) && L(a[0]) % (dimension + 1) === 0) {
+                    } else if (isArr(a[0]) && isNum(a[0][0]) && L(a[0]) % (dimension + 1) === 0) {
                         // these are the coordinates
                         maximalSimplexes = new Uint32Array(a[0])
+                    } else if (isArr(a[0]) && isArr(a[0][0])) {
+                        maximalSimplexes = new Uint32Array(L(a[0]) * (dimension+1))
+                        a[0].forEach((f, i) => f.forEach((p, j) => maximalSimplexes[i * (dimension+1) + j] = p))
+
                     } else {
                         console.error('Cannot interpret maximal simplexes')
                     }
@@ -515,6 +519,7 @@ Object.defineProperties(SimplicialPolyhedron, {
             ]
 
             const coords = new Float32Array(3*n*m)
+            let lastN = null;
             for (let k = 0; k < n; k++) {
                 const iprev = (k-1+n)%n
                 const i = k%n
@@ -531,9 +536,12 @@ Object.defineProperties(SimplicialPolyhedron, {
                 const nDotTg = dot(N,tg)
                 N.forEach( (x,j) => N[j] -= tg[j]*nDotTg)
                 mult(1/norm(N),N)
+                if (lastN !== null && dot(N,lastN) < 0) {
+                    mult(-1,N)
+                }
+                lastN = N
 
                 const tau = vprod(tg,N)
-                console.log(tg,N,tau)
 
                 for (let j = 0; j < m; j++) {
                     for (let l = 0; l < 3; l++) {
