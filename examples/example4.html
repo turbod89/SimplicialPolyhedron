@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Example 4</title>
+        <meta name="author" content="Daniel Torres">
+        <meta name="description" content="Example of Simplicial Polyhedron with movement">
+        <link href="css/main.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/94/three.min.js"></script>
+        <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+        <script src="../simplicialPolyhedron.js"></script>
+        <script src="js/sceneManager.js"></script>
+
+        <script>
+
+            /*
+            *
+            *   Setup Scene
+            *
+            * */
+
+            const sceneManager = new SceneManager();
+            sceneManager
+                .registerScene('main scene', function(scene) {
+                    // set up some light...
+                    const light = new THREE.AmbientLight( 0x404040 )
+                    scene.add( light )
+                })
+                .registerCamera('main camera',{}, function(camera) {
+                    const R = 5
+                    const theta = 0.5/4 * 2 * Math.PI
+                    camera.position.set(0,-R * Math.cos(theta), R * Math.sin(theta))
+                    camera.lookAt(0,0,0)
+                })
+
+            const controls =  new THREE.OrbitControls( sceneManager.getCurrentCamera() )
+            sceneManager
+                .registerStep('update orbit controls', (t,scene,camera) => {
+                    controls.update()
+                })
+
+
+
+            /*
+             *
+             * Simplicial complex
+             *
+             * */
+
+
+            SimplicialPolyhedron.THREE = THREE;
+
+            const coords = []
+            for (let i = -1; i <= 1; i+=0.1) {
+                coords.push(i)
+            }
+
+            const faces = []
+            for (let i = 1; i < coords.length; i++) {
+                faces.push(i-1)
+                faces.push(i)
+            }
+
+
+            const line = new SimplicialPolyhedron(1,1)
+
+
+            line
+                .setCoordinates(coords)
+                .setMaximalSimplexes(faces)
+
+
+            const square = line.times(line)
+            square
+                .projectToEnvironment(3, (X,point, square) => [X[0],X[1],0])
+
+            // define dynamics
+            sceneManager.registerStep('update polyhedron', t => {
+                square.forEachPoint((X,point) => {
+                    const R = Math.sqrt(X[0]*X[0]+X[1]*X[1])
+                    X[2] = 0.25 * Math.sin(2*Math.PI * (R + t/5))
+                })
+
+                square.updateGeometry()
+            })
+
+
+            // build and get buffer geometry
+            const geometry = square.buildGeometry().getGeometry()
+            const material = new THREE.MeshNormalMaterial({
+                side: THREE.DoubleSide,
+            })
+            const mesh = new THREE.Mesh(geometry,material)
+
+            sceneManager.getCurrentScene().add(mesh)
+
+
+            // add step to schedule
+            sceneManager.schedule = [
+                'update orbit controls',
+                'update polyhedron',
+            ]
+
+            sceneManager.start()
+
+
+        </script>
+    </body>
+</html>
