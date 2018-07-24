@@ -454,7 +454,7 @@ Object.defineProperties(SimplicialPolyhedron, {
             for (let i = 0; i < coords.length; i++) {
                 coords[i] = Math.min(a,b) + i*length
             }
-            const faces = new Float32Array(2*n)
+            const faces = new Uint32Array(2*n)
             for (let i = 0; i < n; i++) {
                 faces[2*i] = i
                 faces[2*i+1] = i+1
@@ -467,7 +467,110 @@ Object.defineProperties(SimplicialPolyhedron, {
 
             return segment
         }
-    }
+    },
+
+    S1: {
+        enumerable: false,
+        modificable: false,
+        value: function (R = 1,n = 3, startAngle = 0) {
+
+            const coords = new Float32Array(2*n)
+            for (let i = 0; i < n; i++) {
+                coords[2*i] = R * Math.cos( i/n * 2 * Math.PI + startAngle)
+                coords[2*i + 1] = R * Math.sin( i/n * 2 * Math.PI + startAngle)
+            }
+
+            const faces = new Uint32Array(2*n)
+            for (let i = 0; i < n; i++) {
+                faces[2*i] = i
+                faces[2*i+1] = (i+1)%n
+            }
+
+            const s1 = new SimplicialPolyhedron(1,2)
+            s1
+                .setCoordinates(coords)
+                .setMaximalSimplexes(faces)
+
+            return s1
+        }
+    },
+
+
+    TorusAlong: {
+        enumerable: false,
+        modificable: false,
+        value: function (g,R = 1,n = 3, m = 3, startAngle = 0) {
+
+            const normSq = v => v.reduce( (acc,curr) => acc + curr*curr,0)
+            const norm = v => Math.sqrt(normSq(v))
+            const dot = (v,w) => [0,1,2].reduce( (acc,i) => acc + v[i] * w[i],0)
+            const mult = (scalar, v) => {
+                v.forEach( (x,i) => v[i] *= scalar)
+                return v
+            }
+            const vprod = (a,b) => [
+                a[1]*b[2] - a[2]*b[1],
+                a[2]*b[0] - a[0]*b[2],
+                a[0]*b[1] - a[1]*b[0],
+            ]
+
+            const coords = new Float32Array(3*n*m)
+            for (let k = 0; k < n; k++) {
+                const iprev = (k-1+n)%n
+                const i = k%n
+                const ipost = (k+1)%n
+
+                const pprev= g(iprev/n)
+                const p= g(i/n)
+                const ppost= g(ipost/n)
+
+                const tg = [0,1,2].map(j => (pprev[j]-ppost[j])/2)
+                mult(1/norm(tg),tg)
+
+                const N = [0,1,2].map(j => (pprev[j]+ppost[j])/2 - p[j])
+                const nDotTg = dot(N,tg)
+                N.forEach( (x,j) => N[j] -= tg[j]*nDotTg)
+                mult(1/norm(N),N)
+
+                const tau = vprod(tg,N)
+                console.log(tg,N,tau)
+
+                for (let j = 0; j < m; j++) {
+                    for (let l = 0; l < 3; l++) {
+                        coords[(i * m + j) * 3 + l] =
+                            p[l]
+                            + N[l] * R * Math.cos(j / m * 2 * Math.PI + startAngle)
+                            + tau[l] * R * Math.sin(j / m * 2 * Math.PI + startAngle)
+                    }
+                }
+            }
+
+            const faces = new Uint32Array(3*2*n*m)
+            for (let i = 0; i < n; i++) {
+                const ip = (i+1)%n
+                for (let j = 0; j < m; j++) {
+                    const jp = (j+1)%m
+                    faces[ ( (i*m+j)*2 + 0)*3+ 0] = i*m + j
+                    faces[ ( (i*m+j)*2 + 0)*3+ 1] = i*m + jp
+                    faces[ ( (i*m+j)*2 + 0)*3+ 2] = ip*m + jp
+
+                    faces[ ( (i*m+j)*2 + 1)*3+ 0] = i*m + j
+                    faces[ ( (i*m+j)*2 + 1)*3+ 1] = ip*m + jp
+                    faces[ ( (i*m+j)*2 + 1)*3+ 2] = ip*m + j
+
+                }
+            }
+
+            const torus = new SimplicialPolyhedron(2,3)
+            torus
+                .setCoordinates(coords)
+                .setMaximalSimplexes(faces)
+
+            return torus
+        }
+    },
+
+
 })
 
 

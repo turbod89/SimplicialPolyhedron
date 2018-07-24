@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Example 4</title>
+        <title>Example 5</title>
         <meta name="author" content="Daniel Torres">
         <meta name="description" content="Example of Simplicial Polyhedron with movement">
         <link href="css/main.css" rel="stylesheet" type="text/css">
@@ -55,25 +55,19 @@
 
             SimplicialPolyhedron.THREE = THREE;
 
-            const segment = new SimplicialPolyhedron.Segment(-1,1,80)
+            // define cyclic curve with period 1
+            const gamma = t => [
+                Math.cos(2*Math.PI * t),
+                Math.sin(2*Math.PI * t) * (Math.cos(2*Math.PI * t) *Math.cos(2*Math.PI * t)  + 1),
+                0
+            ]
 
-            const square = segment.times(segment)
-            square
-                .projectToEnvironment(3, (X,point, square) => [X[0],X[1],0])
+            const torus = new SimplicialPolyhedron.TorusAlong(gamma,0.25,50,10)
 
-            // define dynamics
-            sceneManager.registerStep('update polyhedron', t => {
-                square.forEachPoint((X,point) => {
-                    const R = Math.sqrt(X[0]*X[0]+X[1]*X[1])
-                    X[2] = 0.25 * Math.sin(2*Math.PI * (R + t/5))
-                })
-
-                square.updateGeometry()
-            })
-
+            console.log(torus.coordinates, torus.maximalSimplexes)
 
             // build and get buffer geometry
-            const geometry = square.buildGeometry().getGeometry()
+            const geometry = torus.buildGeometry().getGeometry()
             const material = new THREE.MeshNormalMaterial({
                 side: THREE.DoubleSide,
             })
@@ -85,7 +79,6 @@
             // add step to schedule
             sceneManager.schedule = [
                 'update orbit controls',
-                'update polyhedron',
             ]
 
             sceneManager.start()
