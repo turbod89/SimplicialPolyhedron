@@ -636,6 +636,69 @@ Object.defineProperties(SimplicialPolyhedron, {
     },
 
 
+    S2: {
+        enumerable: false,
+        modificable: false,
+        value: function (n = 2, m = 3, R = 1, startAngle = 0) {
+
+            const coords = new Float32Array(3*(1 + (n-1)*m + 1))
+            coords[0] = 0
+            coords[1] = 0
+            coords[2] = R
+
+            for (let i = 0; i < n-1; i++) {
+                for (let j = 0; j < m; j++) {
+                    coords[(1 + i * m + j) * 3 + 0] = R*Math.sin(Math.PI*(i+1)/n)*Math.cos(2*Math.PI*j/m + startAngle)
+                    coords[(1 + i * m + j) * 3 + 1] = R*Math.sin(Math.PI*(i+1)/n)*Math.sin(2*Math.PI*j/m + startAngle)
+                    coords[(1 + i * m + j) * 3 + 2] = R*Math.cos(Math.PI*(i+1)/n)
+                }
+            }
+
+            coords[ (1 + (n-1)*m)*3 + 0] = 0
+            coords[ (1 + (n-1)*m)*3 + 1] = 0
+            coords[ (1 + (n-1)*m)*3 + 2] = -R
+
+
+            const faces = new Uint32Array(3*2*(n-2)*m + 3*1*2*m)
+
+            for (let j = 0; j < m; j++) {
+                const jp = (j+1)%m
+                faces[ 3*j + 0] = 0
+                faces[ 3*j + 1] = j + 1
+                faces[ 3*j + 2] = jp + 1
+            }
+
+            for (let i = 0; i < n-2; i++) {
+                const ip = (i+1)%n
+                for (let j = 0; j < m; j++) {
+                    const jp = (j+1)%m
+                    faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 0] = i*m + j   + 1
+                    faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 1] = i*m + jp   + 1
+                    faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 2] = ip*m + jp   + 1
+
+                    faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 0] = i*m + j   + 1
+                    faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 1] = ip*m + jp   + 1
+                    faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 2] = ip*m + j   + 1
+
+                }
+            }
+
+            for (let j = 0; j < m; j++) {
+                const jp = (j+1)%m
+                faces[ (m + 2*(n-2)*m + j)*3 + 0] = (n-2)*m + j    + 1
+                faces[ (m + 2*(n-2)*m + j)*3 + 1] = (n-2)*m + jp   + 1
+                faces[ (m + 2*(n-2)*m + j)*3 + 2] = (n-2)*m + m    + 1
+            }
+
+            const s2 = new SimplicialPolyhedron(2,3)
+            s2
+                .setCoordinates(coords)
+                .setMaximalSimplexes(faces)
+
+            return s2
+        }
+    },
+
 
 
 
