@@ -173,13 +173,10 @@ const SimplicialPolyhedron = function () {
             }
         },
 
-        getGeometry: {
+        'geometry': {
             enumerable: false,
             modificable: false,
-            value: function () {
-
-                return bGeometry
-            }
+            get: () => bGeometry
         },
 
 
@@ -446,7 +443,7 @@ Object.defineProperties(SimplicialPolyhedron, {
     THREE: {
         enumerable: true,
         modificable: true,
-        value: this.THREE ? this.THREE : null
+        value: this.THREE ? this.THREE : (THREE ? THREE : null)
     },
 
     Segment: {

@@ -56,16 +56,24 @@
             SimplicialPolyhedron.THREE = THREE;
 
             // define cyclic curve with period 1
-            const gamma = t => [
-                Math.cos(2*Math.PI * t),
-                Math.sin(2*Math.PI * t) * (Math.cos(2*Math.PI * t) *Math.cos(2*Math.PI * t)  + 1),
-                0
-            ]
+            const gamma = t => {
+
+                t = 2*Math.PI*t
+                const ct = Math.cos(t)
+                const ct2 = ct*ct
+                const st = Math.sin(t)
+
+                return [
+                    ct,
+                    st*(ct2+1),
+                    ct
+                ]
+            }
 
             const torus = new SimplicialPolyhedron.TorusAlong(gamma,0.15,100,20)
 
             // build and get buffer geometry
-            const geometry = torus.buildGeometry().getGeometry()
+            const geometry = torus.buildGeometry().geometry
             const material = new THREE.MeshNormalMaterial({
                 side: THREE.DoubleSide,
             })
