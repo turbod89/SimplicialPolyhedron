@@ -55,11 +55,8 @@
 
             SimplicialPolyhedron.THREE = THREE;
 
-            const segment = new SimplicialPolyhedron.Segment(-1,1,80)
+            const square = new SimplicialPolyhedron.Disc(64,64,2)
 
-            const square = segment.times(segment)
-            square
-                .projectToEnvironment(3, (X,point, square) => [X[0],X[1],0])
 
             // define dynamics
             sceneManager.registerStep('update polyhedron', t => {

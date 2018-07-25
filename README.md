@@ -30,7 +30,7 @@ p.length(dim)
 ```
 Returns the number of simplexes of dimension `dim`.
     
-### getCoordinates <a id="getCoordinates"></a>
+### getCoordinatesOf <a id="getCoordinates"></a>
 ```javascript
 p.getCoordinates(simplex)
 ```
