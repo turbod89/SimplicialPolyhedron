@@ -118,7 +118,7 @@ const SimplicialPolyhedron = function () {
             },
         },
 
-        getCoordinates: {
+        'getCoordinates': {
             enumerable: false,
             modificable: false,
             value: function (a) {
@@ -143,7 +143,7 @@ const SimplicialPolyhedron = function () {
             },
         },
 
-        buildGeometry: {
+        'buildGeometry': {
             enumerable: false,
             modificable: false,
             value: function () {
@@ -176,7 +176,13 @@ const SimplicialPolyhedron = function () {
         'geometry': {
             enumerable: false,
             modificable: false,
-            get: () => bGeometry
+            get: function () {
+                if (bGeometry === null) {
+                    this.buildGeometry()
+                }
+
+                return bGeometry
+            }
         },
 
 

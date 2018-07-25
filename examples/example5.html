@@ -73,7 +73,7 @@
             const torus = new SimplicialPolyhedron.TorusAlong(gamma,0.15,100,20)
 
             // build and get buffer geometry
-            const geometry = torus.buildGeometry().geometry
+            const geometry = torus.geometry
             const material = new THREE.MeshNormalMaterial({
                 side: THREE.DoubleSide,
             })
