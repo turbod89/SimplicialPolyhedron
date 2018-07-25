@@ -450,7 +450,7 @@ const SimplicialPolyhedron = (function() {
         THREE: {
             enumerable: true,
             modificable: true,
-            value: this.THREE ? this.THREE : (THREE ? THREE : null)
+            value: this.THREE ? this.THREE : (typeof THREE !== 'undefined' ? THREE : null)
         },
 
         Segment: {
