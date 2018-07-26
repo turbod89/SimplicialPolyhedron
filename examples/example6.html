@@ -61,9 +61,7 @@
 
             // build and get buffer geometry
             const geometry = s2.geometry
-            const material = new THREE.MeshNormalMaterial({
-                side: THREE.DoubleSide,
-            })
+            const material = new THREE.MeshNormalMaterial()
             const mesh = new THREE.Mesh(geometry,material)
 
             sceneManager.getCurrentScene().add(mesh)

@@ -646,12 +646,12 @@ const SimplicialPolyhedron = (function() {
                     for (let j = 0; j < m; j++) {
                         const jp = (j+1)%m
                         faces[ ( (i*m+j)*2 + 0)*3+ 0] = i*m + j
-                        faces[ ( (i*m+j)*2 + 0)*3+ 1] = i*m + jp
-                        faces[ ( (i*m+j)*2 + 0)*3+ 2] = ip*m + jp
+                        faces[ ( (i*m+j)*2 + 0)*3+ 1] = ip*m + jp
+                        faces[ ( (i*m+j)*2 + 0)*3+ 2] = i*m + jp
 
                         faces[ ( (i*m+j)*2 + 1)*3+ 0] = i*m + j
-                        faces[ ( (i*m+j)*2 + 1)*3+ 1] = ip*m + jp
-                        faces[ ( (i*m+j)*2 + 1)*3+ 2] = ip*m + j
+                        faces[ ( (i*m+j)*2 + 1)*3+ 1] = ip*m + j
+                        faces[ ( (i*m+j)*2 + 1)*3+ 2] = ip*m + jp
 
                     }
                 }
@@ -700,12 +700,12 @@ const SimplicialPolyhedron = (function() {
                     for (let j = 0; j < m; j++) {
                         const jp = (j+1)%m
                         faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 0] = i*m + j   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 1] = i*m + jp   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 2] = ip*m + jp   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 1] = ip*m + jp   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 2] = i*m + jp   + 1
 
                         faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 0] = i*m + j   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 1] = ip*m + jp   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 2] = ip*m + j   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 1] = ip*m + j   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 2] = ip*m + jp   + 1
 
                     }
                 }
@@ -757,12 +757,12 @@ const SimplicialPolyhedron = (function() {
                     for (let j = 0; j < m; j++) {
                         const jp = (j+1)%m
                         faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 0] = i*m + j   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 1] = i*m + jp   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 2] = ip*m + jp   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 1] = ip*m + jp   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 0)*3+ 2] = i*m + jp   + 1
 
                         faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 0] = i*m + j   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 1] = ip*m + jp   + 1
-                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 2] = ip*m + j   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 1] = ip*m + j   + 1
+                        faces[ 3*m + ( (i*m+j)*2 + 1)*3+ 2] = ip*m + jp   + 1
 
                     }
                 }
@@ -770,8 +770,8 @@ const SimplicialPolyhedron = (function() {
                 for (let j = 0; j < m; j++) {
                     const jp = (j+1)%m
                     faces[ (m + 2*(n-2)*m + j)*3 + 0] = (n-2)*m + j    + 1
-                    faces[ (m + 2*(n-2)*m + j)*3 + 1] = (n-2)*m + jp   + 1
-                    faces[ (m + 2*(n-2)*m + j)*3 + 2] = (n-2)*m + m    + 1
+                    faces[ (m + 2*(n-2)*m + j)*3 + 1] = (n-2)*m + m    + 1
+                    faces[ (m + 2*(n-2)*m + j)*3 + 2] = (n-2)*m + jp   + 1
                 }
 
                 const s2 = new SimplicialPolyhedron(2,3)
