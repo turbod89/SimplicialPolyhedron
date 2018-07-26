@@ -36,35 +36,96 @@ const SimplicialPolyhedron = (function() {
             return s
         }
 
+        const swap = (v,a,b,l=1) => {
+            let c = null
+            for (let i = 0; i < l; i++) {
+                c = v[a+i]
+                v[a+i] = v[b+i]
+                v[b+i] = c
+            }
+        }
+
+        const sortSimplex = v => {
+            let sgn = 1
+            for (let i=0; i < v.length; v++) {
+                for (let j = i+1; j < v.length; j++) {
+                    if (v[j] < v[i]) {
+                        sgn *= -1
+                        swap(v,i,j,1)
+                    }
+                }
+            }
+            return sgn
+        }
+
+        const sortSimplexInArray = (v,a,l) => {
+            let sgn = 1
+            for (let i=0; i < l; v++) {
+                for (let j = i+1; j < l; j++) {
+                    if (v[a+j] < v[a+i]) {
+                        sgn *= -1
+                        swap(v,a+i,a+j,1)
+                    }
+                }
+            }
+            return sgn
+        }
+
+        const compareTwoSimplexesInArray = (v,a,b,l = 1) => {
+            for (let i = 0; i < l; i++) {
+                if (v[a+i] < v[b+i]) {
+                    return -1
+                } else if (v[a+i] > v[b+i]) {
+                    return 1
+                }
+            }
+            return 0
+        }
+
+        const insertAndSortInArray= (v,s,a) => {
+            const l = s.length
+            for (let i = 0; i < l; i++) {
+                v[a+i] = s[i]
+            }
+            while (a>0 &&  0 < compareTwoSimplexesInArray(v,a-l,a,l)) {
+                swap(v,a-l,b,l)
+                a -= l
+            }
+            return a
+        }
+
         let dimension = 2
         let env_dimension = 3
         let coordinates = new Float32Array()
         let maximalSimplexes = new Uint32Array()
         let bGeometry = null
         let bGeometryPointsMapping = null
+        let signs = new Int8Array()
+        let skeleton = []
+        let boundaryLists = []
 
 
         Object.defineProperties(this, {
 
-            dimension: {
+            'dimension': {
                 enumerable: false,
                 modificable: false,
                 get: () => dimension,
             },
 
-            coordinates: {
+            'coordinates': {
                 enumerable: false,
                 modificable: false,
                 get: () => coordinates,
             },
 
-            maximalSimplexes: {
+            'maximalSimplexes': {
                 enumerable: false,
                 modificable: false,
                 get: () => maximalSimplexes,
             },
 
-            length: {
+            'length': {
                 enumerable: false,
                 modificable: false,
                 value: function (dim) {
@@ -78,13 +139,13 @@ const SimplicialPolyhedron = (function() {
                 },
             },
 
-            envDimension: {
+            'envDimension': {
                 enumerable: false,
                 modificable: false,
                 get: () => env_dimension,
             },
 
-            THREE: {
+            'THREE': {
                 enumerable: false,
                 modificable: false,
                 get: () => $.THREE,
@@ -94,7 +155,7 @@ const SimplicialPolyhedron = (function() {
                 },
             },
 
-            getSimplexIndex: {
+            'getSimplexIndex': {
                 enumerable: false,
                 modificable: false,
                 value: function (a) {
@@ -187,7 +248,7 @@ const SimplicialPolyhedron = (function() {
             },
 
 
-            updateGeometry: {
+            'updateGeometry': {
                 enumerable: false,
                 modificable: false,
                 value: function () {
@@ -216,7 +277,7 @@ const SimplicialPolyhedron = (function() {
 
 
 
-            setCoordinates: {
+            'setCoordinates': {
                 enumerable: false,
                 modificable: false,
                 value: function () {
@@ -255,7 +316,7 @@ const SimplicialPolyhedron = (function() {
                 }
             },
 
-            setMaximalSimplexes: {
+            'setMaximalSimplexes': {
                 enumerable: false,
                 modificable: false,
                 value: function () {
@@ -292,7 +353,7 @@ const SimplicialPolyhedron = (function() {
                 }
             },
 
-            forEachPoint: {
+            'forEachPoint': {
                 enumerable: false,
                 modificable: false,
                 value: function (f) {
@@ -303,7 +364,7 @@ const SimplicialPolyhedron = (function() {
                 }
             },
 
-            forEachMaximalSimplex: {
+            'forEachMaximalSimplex': {
                 enumerable: false,
                 modificable: false,
                 value: function (f) {
@@ -317,7 +378,7 @@ const SimplicialPolyhedron = (function() {
 
 
 
-            times: {
+            'times': {
                 enumerable: false,
                 modificable: false,
                 value: function (B) {
@@ -401,7 +462,7 @@ const SimplicialPolyhedron = (function() {
             },
 
 
-            projectToEnvironment: {
+            'projectToEnvironment': {
                 enumerable: false,
                     modificable: false,
                     value: function (newEnvDim,projection) {
@@ -421,6 +482,27 @@ const SimplicialPolyhedron = (function() {
                 }
             },
 
+
+
+            'buildSkeleton': {
+                enumerable: false,
+                    modificable: false,
+                    value: function () {
+
+                        skeleton = new Array(dimension+1)
+                        signs = new Int8Array(this.length(dimension))
+
+                        skeleton[dimension] = maximalSimplexes.slice()
+                        for (let i=0; i <this.length(dimension); i ++) {
+                            signs[i] = sortSimplexInArray(skeleton[dimension],i*(dimension+1),dimension+1)
+                        }
+
+
+
+
+                    return this
+                }
+            },
 
         })
 
@@ -447,14 +529,14 @@ const SimplicialPolyhedron = (function() {
     * */
 
     Object.defineProperties(SimplicialPolyhedron, {
-        THREE: {
+        'THREE': {
             enumerable: true,
             modificable: true,
             writable: true,
             value: this.THREE ? this.THREE : (typeof THREE !== 'undefined' ? THREE : null)
         },
 
-        Segment: {
+        'Segment': {
             enumerable: false,
             modificable: false,
             value: function (a,b,n = 1) {
@@ -478,7 +560,7 @@ const SimplicialPolyhedron = (function() {
             }
         },
 
-        S1: {
+        'S1': {
             enumerable: false,
             modificable: false,
             value: function (R = 1,n = 3, startAngle = 0) {
@@ -505,7 +587,7 @@ const SimplicialPolyhedron = (function() {
         },
 
 
-        TorusAlong: {
+        'TorusAlong': {
             enumerable: false,
             modificable: false,
             value: function (g,R = 1,n = 3, m = 3, startAngle = 0) {
@@ -583,7 +665,7 @@ const SimplicialPolyhedron = (function() {
             }
         },
 
-        Disc: {
+        'Disc': {
             enumerable: false,
             modificable: false,
             value: function (n = 1, m = 3, R = 1, startAngle = 0) {
@@ -638,7 +720,7 @@ const SimplicialPolyhedron = (function() {
         },
 
 
-        S2: {
+        'S2': {
             enumerable: false,
             modificable: false,
             value: function (n = 2, m = 3, R = 1, startAngle = 0) {
