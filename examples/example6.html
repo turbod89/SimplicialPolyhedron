@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Example 5</title>
+        <title>Example 6</title>
         <meta name="author" content="Daniel Torres">
         <meta name="description" content="Example of Simplicial Polyhedron with movement">
         <link href="css/main.css" rel="stylesheet" type="text/css">
@@ -52,12 +52,176 @@
              *
              * */
 
+            // tools
+            const module2 = a => a[0]*a[0] + a[1]*a[1] + a[2]*a[2]
+            const module = a => Math.sqrt(module2(a))
+            const d2 = (a,b) => (a[0]-b[0])*(a[0]-b[0]) + (a[1]-b[1])*(a[1]-b[1]) + (a[2]-b[2])*(a[2]-b[2])
+            const d = (a,b) => Math.sqrt(d2(a,b))
+            const clear = a => {
+                a[0] = 0;
+                a[1] = 0;
+                a[2] = 0;
+                return a
+            }
+            const add = (a,b) => {
+                a[0] += b[0];
+                a[1] += b[1];
+                a[2] += b[2];
+                return a
+            }
+            const subs = (a,b) => {
+                a[0] -= b[0];
+                a[1] -= b[1];
+                a[2] -= b[2];
+                return a
+            }
+            const mult = (lambda,a) => {
+                a[0] *= lambda;
+                a[1] *= lambda;
+                a[2] *= lambda;
+                return a
+            }
+            const addMult = (a,lambda,b) => {
+                a[0] += lambda * b[0];
+                a[1] += lambda * b[1];
+                a[2] += lambda * b[2];
+                return a
+            }
+            const getMult = (lambda,a) => [
+                a[0] * lambda,
+                a[1] * lambda,
+                a[2] * lambda,
+            ]
+            const getDiff = (a,b) => [
+                a[0] - b[0],
+                a[1] - b[1],
+                a[2] - b[2],
+            ]
+
 
             SimplicialPolyhedron.THREE = THREE;
 
             // define cyclic curve with period 1
-            const R = 2
+            const R = 1
             const s2 = new SimplicialPolyhedron.S2(32,32,R)
+
+            // build dynamics
+            const dynamics = new (function Dynamics (p) {
+
+                const l = p.length(0)
+                let lastT = null
+                const neighbors = new Array(l)
+                const physics = new Array(l)
+                const g = [0,0,-9.8]
+                const K = 10 // elasticity constant
+                const mu = 0.4 // friction constant
+
+                const velocities = new Float32Array(3*l)
+                const accelerations = new Float32Array(3*l)
+
+                const floor = -3
+
+                p.forEachPoint( (x,point) => {
+                    neighbors[point] = {
+                        targets: [],
+                        restDistances: [],
+                    }
+
+                    physics[point] = {
+                        x: p.coordinates.subarray(3*point,3*point+3),
+                        dx: velocities.subarray(3*point,3*point+3),
+                        ddx: accelerations.subarray(3*point,3*point+3),
+                        mass: 1,
+                    }
+                })
+
+                p.forEachMaximalSimplex( face => {
+                    for (let i = 0; i < face.length; i++) {
+                        for (let j = 0; j < face.length; j ++) {
+                            if ( i !== j) {
+                                let k = neighbors[face[i]].targets.findIndex( neighbor => neighbor === face[j])
+                                if (k < 0) {
+                                    neighbors[face[i]].targets.push(face[j])
+                                    neighbors[face[i]].restDistances.push(d(physics[face[i]].x,physics[face[j]].x))
+                                    //neighbors[face[i]].restDistances.push(0.5)
+                                }
+                            }
+                        }
+                    }
+                })
+
+                const updateForces = function (dt) {
+                    physics.forEach ( (physic,i) => {
+                        clear(physic.ddx)
+
+                        // gravity
+                        add(physic.ddx,g)
+
+                        // neighbors
+                        neighbors[i].targets.forEach( (j, k) => {
+                            const dir = getDiff(physics[j].x,physic.x)
+                            const l = module(dir)
+                            addMult( physic.ddx,K*(l - neighbors[i].restDistances[k])/l,dir)
+                        })
+
+
+                        // friction
+                        addMult(physic.ddx,-mu*physic.mass,physic.dx)
+
+                        // force to acc
+                        mult(1/physic.mass,physic.ddx)
+
+                        // floor
+                        if (physic.x[2] <= floor) {
+                            physic.ddx[2] = 0
+                        }
+                    })
+                }
+
+                const updateVelocities = function (dt) {
+                    physics.forEach( (physic,i) => {
+                        addMult(physic.dx,dt,physic.ddx)
+
+
+                        // floor
+                        if (physic.x[2] <= floor) {
+                            physic.dx[2] *= -1
+                        }
+                    })
+                }
+
+                const updatePositions = function (dt) {
+                    physics.forEach( (physic,i) => {
+                        addMult(physic.x,dt,physic.dx)
+
+                        // floor
+                        if (physic.x[2] <= floor) {
+                            physic.x[2] = floor
+                        }
+                    })
+                }
+
+                this.update = function (t) {
+                    if (lastT !== null ) {
+                      let dt = t - lastT
+                      updateForces(dt)
+                      updateVelocities(dt)
+                      updatePositions(dt)
+                    }
+
+                    lastT = t
+                    p.updateGeometry()
+                    return this
+                }
+
+            })(s2)
+
+            // update physics
+            sceneManager.registerStep('update polyhedron', t => {
+                dynamics.update(t)
+                //console.log(s2.coordinates)
+            })
+
 
             // build and get buffer geometry
             const geometry = s2.geometry
@@ -70,6 +234,7 @@
             // add step to schedule
             sceneManager.schedule = [
                 'update orbit controls',
+                'update polyhedron',
             ]
 
             sceneManager.start()
