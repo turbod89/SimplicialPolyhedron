@@ -191,7 +191,7 @@ const SimplicialPolyhedron = (function() {
                         return null
                     }
 
-                    // observe that a could be a typed array.
+                    // observe that 'a' could be a typed array.
                     // in that case, map's return is expect to be
                     // a number, not a typed array.
                     // for this reason we use for loop

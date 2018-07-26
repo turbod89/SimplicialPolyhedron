@@ -8,7 +8,7 @@ Furthermore it allowes to connect to THREE.js and manage buffer geometries as ea
 
 - [constructor](#constructor)
 - [length](#length)
-- [getCoordinates](#getCoordinates)
+- [getCoordinatesOf](#getCoordinatesOf)
 - [setCoordinates](#setCoordinates)
 - [setMaximalSimplexes](#set-maximal-simplexes)
 - [forEachPoint](#forEachPoint)
@@ -30,13 +30,13 @@ p.length(dim)
 ```
 Returns the number of simplexes of dimension `dim`.
     
-### getCoordinatesOf <a id="getCoordinates"></a>
+### getCoordinatesOf <a id="getCoordinatesOf"></a>
 ```javascript
-p.getCoordinates(simplex)
+p.getCoordinatesOf(simplex)
 ```
 where `simplex = [p0,p1,...,pn]` is an array containing the points that define the n-simplex.
 
-Returns an array of length `(n+1)*envDim` with a copy of the coordinates of the simplex's points.
+Returns an array of length `(n+1)` containing the coordinates of the points.
 
 ### setCoordinates <a id="setCoordinates"></a>
 ```javascript
