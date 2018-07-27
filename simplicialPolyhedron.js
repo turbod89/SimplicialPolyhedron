@@ -129,10 +129,12 @@ const SimplicialPolyhedron = (function() {
                 enumerable: false,
                 modificable: false,
                 value: function (dim) {
-                    if (dim === 0) {
+                    if (dim === 0 && env_dimension > 0) {
                         return coordinates.length / env_dimension
                     } else if (dim === dimension) {
                         return maximalSimplexes.length / (dimension + 1)
+                    } else if (dim === 0 && env_dimension === 0 && coordinates.length === 0) {
+                        return maximalSimplexes.length
                     }
 
                     return 0
@@ -357,8 +359,14 @@ const SimplicialPolyhedron = (function() {
                 enumerable: false,
                 modificable: false,
                 value: function (f) {
-                    for (let i = 0; i < coordinates.length; i += env_dimension) {
-                        f(coordinates.subarray(i, i + env_dimension), i / env_dimension, this)
+                    if (env_dimension > 0) {
+                        for (let i = 0; i < coordinates.length; i += env_dimension) {
+                            f(coordinates.subarray(i, i + env_dimension), i / env_dimension, this)
+                        }
+                    } else if (env_dimension === 0) {
+                        for (let i = 0; i < maximalSimplexes.length; i += dimension+1) {
+                            f(coordinates, i , this)
+                        }
                     }
                     return this
                 }
@@ -462,6 +470,72 @@ const SimplicialPolyhedron = (function() {
             },
 
 
+            'join': {
+                enumerable: false,
+                modificable: false,
+                value: function (B) {
+                    const A = this
+                    const C = new SimplicialPolyhedron(A.dimension + B.dimension + 1, A.envDimension + B.envDimension + 1)
+
+                    // coordinates
+                    const coordsC = new Float32Array( (A.length(0) + B.length(0)) * C.envDimension)
+                    
+                    A.forEachPoint(
+                        (pointCoordsA, i) => {
+                            for (let k = 0; k < A.envDimension; k++) {
+                                coordsC[i * C.envDimension + k] = pointCoordsA[k]
+                            }
+                            /* by default, they already are 0
+                            for (let k = A.envDimension; k < C.envDimension; k++) {
+                                coordsC[i  * C.envDimension + k] = 0
+                            }
+                            */
+                        }
+                    )
+
+                    B.forEachPoint(
+                        (pointCoordsB, i) => {
+                            /* by default, they already are 0
+                            for (let k = 0; k < A.envDimension; k++) {
+                                coordsC[(i + A.length(0)) * C.envDimension + k + A.envDimension] = 0
+                            }
+                            */
+                            for (let k = A.envDimension; k < A.envDimension + B.envDimension; k++) {
+                                coordsC[(i + A.length(0)) * C.envDimension + k ] = pointCoordsB[k - A.envDimension]
+                            }
+                            
+                            coordsC[(i + A.length(0)) * C.envDimension + A.envDimension + B.envDimension ] = 1
+                        }
+                    )
+
+
+                    C.setCoordinates(coordsC)
+
+                    // maximal simplexes
+                    const maximalSimplexesC = new Uint32Array(
+                        A.length(A.dimension) *
+                        B.length(B.dimension) *
+                        (C.dimension + 1)
+                    )
+
+                    A.forEachMaximalSimplex((maximalSimplexA, i) => {
+                        B.forEachMaximalSimplex((maximalSimplexB, j) => {
+                            for (let k = 0; k < A.dimension + 1; k++) {
+                                maximalSimplexesC[ (i * B.length(B.dimension) + j)* (C.dimension + 1) + k] = maximalSimplexA[k]
+                            }
+                            for (let k = 0; k < B.dimension + 1; k++) {
+                                maximalSimplexesC[ (i * B.length(B.dimension) + j)* (C.dimension + 1) + k + A.dimension + 1] = maximalSimplexB[k] + A.length(0)
+                            }    
+                        })
+                    })
+                    C.setMaximalSimplexes(maximalSimplexesC)
+
+
+                    return C
+                }
+            },
+
+
             'projectToEnvironment': {
                 enumerable: false,
                     modificable: false,
@@ -534,6 +608,20 @@ const SimplicialPolyhedron = (function() {
             modificable: true,
             writable: true,
             value: this.THREE ? this.THREE : (typeof THREE !== 'undefined' ? THREE : null)
+        },
+
+        'Point': {
+            enumerable: false,
+            modificable: false,
+            value: function () {
+                
+                const point = new SimplicialPolyhedron(0,0)
+                point
+                    .setCoordinates([[]])
+                    .setMaximalSimplexes([0])
+
+                return point
+            }
         },
 
         'Segment': {
