@@ -103,7 +103,8 @@
 
             // define cyclic curve with period 1
             const R = 1
-            const s2 = new SimplicialPolyhedron.S2(32,32,R)
+            const n = 16
+            const s2 = new SimplicialPolyhedron.Disc(n,32,R)
 
             // build dynamics
             const dynamics = new (function Dynamics (p) {
@@ -113,13 +114,13 @@
                 const neighbors = new Array(l)
                 const physics = new Array(l)
                 const g = [0,0,-9.8]
-                const K = 10 // elasticity constant
+                const K = n*100 // elasticity constant
                 const mu = 0.4 // friction constant
 
                 const velocities = new Float32Array(3*l)
                 const accelerations = new Float32Array(3*l)
 
-                const floor = -3
+                const floor = -10000
 
                 p.forEachPoint( (x,point) => {
                     neighbors[point] = {
@@ -131,7 +132,8 @@
                         x: p.coordinates.subarray(3*point,3*point+3),
                         dx: velocities.subarray(3*point,3*point+3),
                         ddx: accelerations.subarray(3*point,3*point+3),
-                        mass: 1,
+                        mass: 1/l,
+                        fixed: module2(x) >= 0.9*R*R
                     }
                 })
 
@@ -143,7 +145,7 @@
                                 if (k < 0) {
                                     neighbors[face[i]].targets.push(face[j])
                                     neighbors[face[i]].restDistances.push(d(physics[face[i]].x,physics[face[j]].x))
-                                    //neighbors[face[i]].restDistances.push(0.5)
+
                                 }
                             }
                         }
@@ -154,6 +156,10 @@
                     physics.forEach ( (physic,i) => {
                         clear(physic.ddx)
 
+                        if (physic.fixed) {
+                            return
+                        }
+
                         // gravity
                         add(physic.ddx,g)
 
@@ -163,10 +169,6 @@
                             const l = module(dir)
                             addMult( physic.ddx,K*(l - neighbors[i].restDistances[k])/l,dir)
                         })
-
-
-                        // friction
-                        addMult(physic.ddx,-mu*physic.mass,physic.dx)
 
                         // force to acc
                         mult(1/physic.mass,physic.ddx)
@@ -181,6 +183,9 @@
                 const updateVelocities = function (dt) {
                     physics.forEach( (physic,i) => {
                         addMult(physic.dx,dt,physic.ddx)
+
+                        // friction
+                        addMult(physic.dx,-mu*physic.mass,physic.dx)
 
 
                         // floor
@@ -204,6 +209,8 @@
                 this.update = function (t) {
                     if (lastT !== null ) {
                       let dt = t - lastT
+                      ;
+                      dt *= 2/l
                       updateForces(dt)
                       updateVelocities(dt)
                       updatePositions(dt)
@@ -219,13 +226,14 @@
             // update physics
             sceneManager.registerStep('update polyhedron', t => {
                 dynamics.update(t)
-                //console.log(s2.coordinates)
             })
 
 
             // build and get buffer geometry
             const geometry = s2.geometry
-            const material = new THREE.MeshNormalMaterial()
+            const material = new THREE.MeshNormalMaterial({
+                side: THREE.DoubleSide,
+            })
             const mesh = new THREE.Mesh(geometry,material)
 
             sceneManager.getCurrentScene().add(mesh)

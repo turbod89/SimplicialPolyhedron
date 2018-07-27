@@ -679,8 +679,8 @@ const SimplicialPolyhedron = (function() {
 
                 for (let i = 0; i < n; i++) {
                     for (let j = 0; j < m; j++) {
-                        coords[3 + (i * m + j) * 3 + 0] = (i+1)*r*Math.cos(2*Math.PI*j/m + startAngle)
-                        coords[3 + (i * m + j) * 3 + 1] = (i+1)*r*Math.sin(2*Math.PI*j/m + startAngle)
+                        coords[3 + (i * m + j) * 3 + 0] = (i+1)*r*Math.cos(2*Math.PI*j/m - i*(Math.PI/m) + startAngle)
+                        coords[3 + (i * m + j) * 3 + 1] = (i+1)*r*Math.sin(2*Math.PI*j/m - i*(Math.PI/m)  + startAngle)
                         coords[3 + (i * m + j) * 3 + 2] = 0
                     }
                 }
