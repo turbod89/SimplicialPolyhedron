@@ -15,6 +15,7 @@
         <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
         <script src="../simplicialPolyhedron.js"></script>
         <script src="js/sceneManager.js"></script>
+        <script src="js/RKDynamics.js"></script>
 
         <script>
 
@@ -103,38 +104,31 @@
 
             // define cyclic curve with period 1
             const R = 1
-            const n = 16
-            const s2 = new SimplicialPolyhedron.Disc(n,32,R)
+            const n = 64
+            const s2 = new SimplicialPolyhedron.Disc(n,64,R)
 
             // build dynamics
+            console.log(BucherTableaux.RK4)
             const dynamics = new (function Dynamics (p) {
 
+                const RK4Dynamics = new RKDynamics(p,BucherTableaux.RK4);
+                
                 const l = p.length(0)
-                let lastT = null
+                const isFixed = new Array(l)
                 const neighbors = new Array(l)
-                const physics = new Array(l)
                 const g = [0,0,-9.8]
-                const K = n*100 // elasticity constant
+                const K = n*1000 // elasticity constant
                 const mu = 0.4 // friction constant
-
-                const velocities = new Float32Array(3*l)
-                const accelerations = new Float32Array(3*l)
-
                 const floor = -10000
+
+                let lastT = null
 
                 p.forEachPoint( (x,point) => {
                     neighbors[point] = {
                         targets: [],
                         restDistances: [],
                     }
-
-                    physics[point] = {
-                        x: p.coordinates.subarray(3*point,3*point+3),
-                        dx: velocities.subarray(3*point,3*point+3),
-                        ddx: accelerations.subarray(3*point,3*point+3),
-                        mass: 1/l,
-                        fixed: module2(x) >= 0.9*R*R
-                    }
+                    isFixed[point] = module(x) > 0.9 * R *R
                 })
 
                 p.forEachMaximalSimplex( face => {
@@ -143,8 +137,9 @@
                             if ( i !== j) {
                                 let k = neighbors[face[i]].targets.findIndex( neighbor => neighbor === face[j])
                                 if (k < 0) {
+                                    let x = p.getCoordinatesOf(face)
                                     neighbors[face[i]].targets.push(face[j])
-                                    neighbors[face[i]].restDistances.push(d(physics[face[i]].x,physics[face[j]].x))
+                                    neighbors[face[i]].restDistances.push(d(x[i],x[j]))
 
                                 }
                             }
@@ -152,68 +147,43 @@
                     }
                 })
 
-                const updateForces = function (dt) {
-                    physics.forEach ( (physic,i) => {
-                        clear(physic.ddx)
+                RK4Dynamics.force = function (targetForce, point, t, physicProperties) {
+                    const pointPhysics = physicProperties[point];
 
-                        if (physic.fixed) {
-                            return
-                        }
+                    clear(targetForce)
 
-                        // gravity
-                        add(physic.ddx,g)
+                    if (isFixed[point]) {
+                        return this;
+                    }
 
-                        // neighbors
-                        neighbors[i].targets.forEach( (j, k) => {
-                            const dir = getDiff(physics[j].x,physic.x)
-                            const l = module(dir)
-                            addMult( physic.ddx,K*(l - neighbors[i].restDistances[k])/l,dir)
-                        })
 
-                        // force to acc
-                        mult(1/physic.mass,physic.ddx)
+                    // gravity
+                    add(targetForce,g)
 
-                        // floor
-                        if (physic.x[2] <= floor) {
-                            physic.ddx[2] = 0
-                        }
+                    // neighbors
+                    neighbors[point].targets.forEach( (j, k) => {
+                        const dir = getDiff(physicProperties[j].x,pointPhysics.x)
+                        const l = module(dir)
+                        addMult( targetForce,K*(l - neighbors[point].restDistances[k])/l,dir)
                     })
-                }
 
-                const updateVelocities = function (dt) {
-                    physics.forEach( (physic,i) => {
-                        addMult(physic.dx,dt,physic.ddx)
+                    // friction
+                    addMult(targetForce,-mu,pointPhysics.dx)
 
-                        // friction
-                        addMult(physic.dx,-mu*physic.mass,physic.dx)
+                    // floor
+                    if (pointPhysics.x[2] <= floor) {
+                        targetForce[2] = 0
+                    }
 
+                    return this
 
-                        // floor
-                        if (physic.x[2] <= floor) {
-                            physic.dx[2] *= -1
-                        }
-                    })
-                }
-
-                const updatePositions = function (dt) {
-                    physics.forEach( (physic,i) => {
-                        addMult(physic.x,dt,physic.dx)
-
-                        // floor
-                        if (physic.x[2] <= floor) {
-                            physic.x[2] = floor
-                        }
-                    })
                 }
 
                 this.update = function (t) {
                     if (lastT !== null ) {
-                      let dt = t - lastT
-                      ;
+                      let dt = t - lastT;
                       dt *= 2/l
-                      updateForces(dt)
-                      updateVelocities(dt)
-                      updatePositions(dt)
+                      RK4Dynamics.step(dt,t)
                     }
 
                     lastT = t
